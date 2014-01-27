@@ -32,6 +32,9 @@ func main() {
 	connection, err := amqp.Dial(*uri)
 	if err != nil {log.Fatalf("Error getting connection: %s", err)}
 
+	server, err := os.Hostname()
+	if err != nil {log.Fatalf("Error getting hostname: %s", err)}
+
 	http.HandleFunc("/add", func(w http.ResponseWriter, req *http.Request) {
 		channel, err := connection.Channel()
 		if err != nil {log.Fatalf("Error opening channel: %s", err)}
@@ -42,7 +45,18 @@ func main() {
 			fmt.Sprintf("jiffy-%s", time.Now().Format("2006.01.02")),  // ES index to write to
 			"measurement",                                             // data _type
 		}}
-		data := get_data(req)
+		data := ejtypes.Measurement{
+			req.FormValue("uid"),                    // uuid
+			"",                                      // measurement_code
+			0,                                       // seq
+			0,                                       // elapsed_time
+			time.Now().Unix(),                       // server_time
+			server,                                  // server
+			req.FormValue("pn"),                     // page_name
+			strings.Split(req.RemoteAddr, ":")[0],   // client_addr
+			req.UserAgent(), nil, nil,               // user_agent, browser, os
+			req.FormValue("sid"), nil,               // user_cat1, user_cat2
+		}
 
 		cmd_bytes, err := json.Marshal(cmd)
 		if err != nil {log.Fatalf("Error encoding command JSON: %s", err)}
@@ -80,23 +94,6 @@ func main() {
 
 	log.Printf("Launching web server")
 	log.Fatal(http.ListenAndServe(":8092", nil))
-}
-
-func get_data(req *http.Request) ejtypes.Measurement {
-	server, _ := os.Hostname()
-	data := ejtypes.Measurement{
-		req.FormValue("uid"),                    // uuid
-		"",                                      // measurement_code
-		0,                                       // seq
-		0,                                       // elapsed_time
-		time.Now().Unix(),                       // server_time
-		server,                                  // server
-		req.FormValue("pn"),                     // page_name
-		strings.Split(req.RemoteAddr, ":")[0],   // client_addr
-		req.UserAgent(), nil, nil,               // user_agent, browser, os
-		req.FormValue("sid"), nil,               // user_cat1, user_cat2
-	}
-	return data
 }
 
 func get_elapsed_times(etss string) [][]string {
