@@ -38,7 +38,10 @@ func main() {
 
 		req.Body.Close()
 
-		cmd := get_cmd()
+		cmd := ejtypes.ESIndexCommand{ejtypes.ESIndexData{
+			fmt.Sprintf("jiffy-%s", time.Now().Format("2006.01.02")),  // ES index to write to
+			"measurement"                                              // data _type
+		}}
 		data := get_data(req)
 
 		cmd_bytes, err := json.Marshal(cmd)
@@ -53,7 +56,10 @@ func main() {
 			}
 
 			data_bytes, err := json.Marshal(data)
-			if err != nil {log.Fatalf("Error encoding data JSON: %s", err)}
+			if err != nil {
+				log.Printf("Error encoding data JSON: %s", err)
+				continue
+			}
 
 			body := fmt.Sprintf("%s\n%s\n", string(cmd_bytes), string(data_bytes))
 
@@ -74,13 +80,6 @@ func main() {
 
 	log.Printf("Launching web server")
 	log.Fatal(http.ListenAndServe(":8092", nil))
-}
-
-func get_cmd() ejtypes.ESIndexCommand {
-	index := fmt.Sprintf("jiffy-%s", time.Now().Format("2006.01.02"))
-	entry_type := "measurement"
-	cmd := ejtypes.ESIndexCommand{ejtypes.ESIndexData{index, entry_type}}
-	return cmd
 }
 
 func get_data(req *http.Request) ejtypes.Measurement {
