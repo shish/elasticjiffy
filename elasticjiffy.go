@@ -40,7 +40,7 @@ func main() {
 
 		cmd := ejtypes.ESIndexCommand{ejtypes.ESIndexData{
 			fmt.Sprintf("jiffy-%s", time.Now().Format("2006.01.02")),  // ES index to write to
-			"measurement"                                              // data _type
+			"measurement",                                             // data _type
 		}}
 		data := get_data(req)
 
