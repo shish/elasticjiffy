@@ -35,7 +35,11 @@ func main() {
 	server, err := os.Hostname()
 	if err != nil {log.Fatalf("Error getting hostname: %s", err)}
 
-	http.HandleFunc("/add", func(w http.ResponseWriter, req *http.Request) {
+	http.HandleFunc("/rx.js", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "// RX JS file should go here")
+	})
+
+	http.HandleFunc("/rx", func(w http.ResponseWriter, req *http.Request) {
 		channel, err := connection.Channel()
 		if err != nil {log.Fatalf("Error opening channel: %s", err)}
 
